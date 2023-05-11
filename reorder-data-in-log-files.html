@@ -1,0 +1,9 @@
+https://leetcode.com/problems/reorder-data-in-log-files/
+<script>
+    const logs = ["dig1 8 1 5 1", "let1 art can", "dig2 3 6", "let2 own kit dig", "let3 art zero"]
+    const filteredLogsNumbs = logs.filter(x => (!isNaN(x.split(" ")[1])))
+    const filteredLogTexts = logs.filter(x => (isNaN(x.split(" ")[1])))
+    filteredLogTexts.sort(function (a, b) { return a.localeCompare(b); });
+    const result = [...filteredLogTexts, ...filteredLogsNumbs]
+    console.log(result)
+</script>
