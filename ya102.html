@@ -1,0 +1,212 @@
+A. Инопланетный коммуникатор
+
+Вам пришлось столкнуться с коммуникатором, в котором находится зашифрованная инструкция. Система показывает, 
+что коммуникатор обрабатывает сообщения перед отправкой и добавляет дополнительную разметку от себя. 
+Любое значение в исходных данных может оказаться обёрнутым в специальный объект вида
+ { _COMMUNICATOR_CONTROL_: { ... } } (считаем, что имени поля _COMMUNICATOR_CONTROL_ в наших отправляемых данных не бывает).
+
+Вот какие варианты возможны:
+
+    { _COMMUNICATOR_CONTROL_: { validated: true, content: ... } }
+
+    Похоже на какую-то дополнительную проверку, а в поле content может находиться оригинальное входное значение или значение с 
+    дополнительными объектами _COMMUNICATOR_CONTROL_.
+
+    { _COMMUNICATOR_CONTROL_: { validated: true, hash: 'some-string', content: ... } }
+
+    Видимо коммуникатор считает важным промаркировать эквивалентные фрагменты дерева.
+
+    { _COMMUNICATOR_CONTROL_: { censorship: true } }
+
+    А это уже плохо... некоторые фрагменты могут быть подвержены какой-то цензуре и полностью удалены (заменены на такую заглушку).
+
+А ещё, оказалось, что из-за каких-то сбоев значения за пределами объектов _COMMUNICATOR_CONTROL_ могут быть искажены случайным образом (удалены, добавлены, изменены).
+
+Прийдётся проверять, что отправленное значение по содержанию эквивалентно исходному. Благо после отправки есть доступ к модифицированному сообщению.
+
+Необходимо написать функцию, которая примет на вход два значения и вернёт true, если они эквивалентны 
+(с учётом возможных добавок _COMMUNICATOR_CONTROL_), в противном случае вернёт false.
+
+Шаблон решения:
+
+function check(origin, sent) {
+  return origin === sended // нужна более сложная проверка
+}
+
+module.exports = check
+
+Примеры
+
+// 1.
+check(1, 1) // true
+
+// 2.
+check(1, { _COMMUNICATOR_CONTROL_: { censorship: true } }) // false
+
+// 3.
+check([1, 2], [1, 2]) // true
+
+// 4.
+check({ a: 1, b: [1] }, { a: 1, b: [2] }) // false
+
+// 5.
+check(
+  [1, 2],
+  [1, { _COMMUNICATOR_CONTROL_: { validated: true, content: 2 } }])
+    // true
+
+// 6.
+check(
+  [1, 2],
+  [1, { _COMMUNICATOR_CONTROL_: { censorship: true } }])
+    // false
+
+// 7.
+check(
+  {
+    a: [1, 2, 3],
+    b: [1, 2, 3],
+    c: [1, 2, 3]
+  },
+  {
+    a: { _COMMUNICATOR_CONTROL_: { validated: true, hash: '123', content: [1, 2, 3] } },
+    b: { _COMMUNICATOR_CONTROL_: { validated: true, hash: '123', content: [1, 2, 3] } },
+    c: { _COMMUNICATOR_CONTROL_: { validated: true, hash: '123', content: [1, 2, 3] } }
+  })
+    // true
+
+// 8.
+check(
+  {
+    a: [1, 2, 3],
+    b: [1, 2, 3],
+    c: [1, 2, 3],
+    d: [4, 5, 6]
+  },
+  {
+    a: { _COMMUNICATOR_CONTROL_: { validated: true, hash: '123', content: [1, 2, 3] } },
+    b: { _COMMUNICATOR_CONTROL_: { validated: true, hash: '123', content: [1, 2, 3] } },
+    c: { _COMMUNICATOR_CONTROL_: { validated: true, hash: '123', content: [1, 2, 3] } },
+    d: [1, 2, 3]
+  })
+    // false
+
+// 9.
+check(
+  {
+    a: { x: '.', y: '!', z: '?' },
+    b: { x: '.', y: '!', z: '?' },
+    c: { x: '.', y: '!', z: '?' }
+  },
+  {
+    a: { _COMMUNICATOR_CONTROL_: { validated: true, hash: 'xyz', content: {
+      x: '.',
+      y: { _COMMUNICATOR_CONTROL_: { censorship: true } },
+      z: '?'
+    } } },
+    b: { _COMMUNICATOR_CONTROL_: { validated: true, hash: 'xyz', content: {
+      x: '.',
+      y: { _COMMUNICATOR_CONTROL_: { censorship: true } },
+      z: '?'
+    } } },
+    c: { _COMMUNICATOR_CONTROL_: { validated: true, hash: 'xyz', content: {
+      x: '.',
+      y: { _COMMUNICATOR_CONTROL_: { censorship: true } },
+      z: '?'
+    } } }
+  })
+    // false
+
+// 10.
+check(
+  {
+    a: { x: '.', y: '!', z: '?' }
+  },
+  {
+    a: { _COMMUNICATOR_CONTROL_: { validated: true, content: {
+      x: '.',
+      y: { _COMMUNICATOR_CONTROL_: { validated: true, content: '!' } },
+      z: '?'
+    } } }
+  })
+    // true
+
+// 11.
+check(
+  {
+    a: { x: '.', y: '!', z: '?' },
+    b: true
+  },
+  {
+    a: { _COMMUNICATOR_CONTROL_: { validated: true, content: {
+      x: '.',
+      y: { _COMMUNICATOR_CONTROL_: { validated: true, content: '!' } },
+      z: '?'
+    } } }
+  })
+    // false
+
+<script>
+
+    function checkConsorship(val) {
+        return val._COMMUNICATOR_CONTROL_ && val._COMMUNICATOR_CONTROL_.censorship
+    }
+
+    function getObjectType(obj) {
+        if (obj instanceof Array) {
+            return 'array'
+        }
+        else if (obj instanceof Object) {
+            return 'object'
+        }
+        else {
+            return 'another'
+        }
+    }
+
+    function checkArray(org, sent) {
+        if (org.length !== sent.length) {
+            return false
+        }
+        return org.every((elem, i) => check(elem, sent[i]))
+    }
+
+    function checkObject(org, sent) {
+        const keys = Object.keys(org)
+        return keys.every(k => {
+            if (!sent[k])
+                return false
+            return check(org[k], sent[k])
+        })
+    }
+
+    function checkAnother(org, sent) {
+        return org == sent
+    }
+
+    function check(org, sent) {
+        if (checkConsorship(org, sent)) return false
+
+        const checkFuncs = {
+            'array': checkArray,
+            'object': checkObject,
+            'another': checkAnother
+        }
+
+        const sentValue = sent._COMMUNICATOR_CONTROL_ ? sent._COMMUNICATOR_CONTROL_.content : sent
+
+        return checkFuncs[getObjectType(org)](org, sentValue)
+    }
+
+    console.log(check(
+        {
+            a: [1, 2, 3],
+            b: [1, 2, 3],
+            c: [1, 2, 3]
+        },
+        {
+            a: { _COMMUNICATOR_CONTROL_: { validated: true, hash: '123', content: [1, 2, 3] } },
+            b: { _COMMUNICATOR_CONTROL_: { validated: true, hash: '123', content: [1, 2, 3] } },
+            c: { _COMMUNICATOR_CONTROL_: { validated: true, hash: '123', content: [1, 2, 3] } }
+        }))
+</script>
