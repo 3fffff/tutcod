@@ -1,0 +1,15 @@
+<script>
+    const test = '{[{]}]}()[]'
+    function bracketsTest(data) {
+        const bracketsType = { '}': '{', ']': '[', ')': '(' }
+        const stack = []
+        stack.push(data[0])
+        for (let i = 1; i < data.length; i++) {
+            if (bracketsType[data[i]] == stack[stack.length - 1] && stack.length > 0)
+                stack.pop()
+            else stack.push(data[i])
+        }
+        return stack.length > 0 ? false : true
+    }
+    console.log(bracketsTest(test))
+</script>
