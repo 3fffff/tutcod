@@ -1,0 +1,78 @@
+        Напишите функцию createCountdown, которая будет принимать не отрицательное целое число в качестве единственного аргумента и возвращать новую функцию без аргументов. Возвращаемая функция должна, с каждым своим вызовом, по одному, возвращать целые числа от изначально заданного до нуля. Все последующие вызовы, после вызова вернувшего ноль, должны так же возвращать ноль.
+
+        Например:
+
+        const countdownFrom2 = createCountdown(2)
+
+        countdownFrom2() // 2
+        countdownFrom2() // 1
+        countdownFrom2() // 0
+        countdownFrom2() // 0
+
+        Если единственный аргумент функции createCountdown не является не отрицательным целым числом, это нужно воспринимать как вызов с аргументом равным 0.
+        Примечания
+
+        Решение должно представлять из себя валидный JavaScript с определением функции createCountdown на верхнем уровне.
+
+*/
+
+
+// var fs = require('fs');
+
+// const content = fs.readFileSync(__dirname + '/input.json', 'utf-8');
+
+// console.log(buildStair(content));
+
+function createCountdown(num) {
+    const res = () => {
+        const currentCount = res.count;
+        if (currentCount > 0) {
+            res.count -= 1;
+        }
+        return currentCount;
+    };
+    res.count = (typeof num === 'number' && num > 0) ? num : 0;
+    return res;
+}
+
+const testData = [[4, 2]];
+
+<script>
+    const testData = ['00:00', '23:59', '00:00'];
+    function calcTime(data) {
+        let [prevHours, prevMinuts] = testData[0].split(":")
+        let result = []
+        for (let i = 1; i < testData.length; i++) {
+            let [nextHours, nextMinuts] = testData[i].split(":")
+            const prevTime = Number(prevHours) * 60 + Number(prevMinuts)
+            const nextTime = Number(nextHours) * 60 + Number(nextMinuts)
+            if (prevTime > nextTime) {
+                const time = nextTime + 24 * 60 - prevTime
+                result.push(time)
+            }
+            else {
+                const time = nextTime - prevTime
+                result.push(time)
+            }
+            prevHours = nextHours
+            prevMinuts = nextMinuts
+        }
+        console.log(result)
+    }
+    calcTime(testData)
+
+    calcPoitions([-2, 3, -5, 5, 1])
+    function calcPoitions(testData, n) {
+        let arr = [], arrSum = []
+        for (let i = 0; i < testData.length - n; i++) {
+            for (let j = i + 1; j < testData.length - n; j++) {
+                arr.push([testData[i], ...testData.slice(j, n - 1)])
+                arr.push([testData[i], testData[j]])
+                arrSum.push(testData[i] + testData[i + j])
+            }
+        }
+        arrSum = [...arrSum, ...testData]
+        arrSum.sort((a, b) => b - a)
+        console.log(arrSum)
+    }
+</script>
