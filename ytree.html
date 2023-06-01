@@ -1,0 +1,82 @@
+/*      https://contest.yandex.ru/contest/40183/problems/E/
+
+        
+        E. Путь к файлу
+        Ограничение времени 	1 секунда
+        Ограничение памяти 	64Mb
+        Ввод 	стандартный ввод или input.txt
+        Вывод 	стандартный вывод или output.txt
+
+        В операционной системе Xunil информация обо всех файлах и директориях хранится в специальном файле в следующем формате:
+
+        Имена файлов, и только они, содержат точку.
+
+        Требуется по данному имени файла найти путь к нему. Если таких файлов несколько, вывести путь к файлу, который записан выше.
+        Формат ввода
+
+        В первой строке вводится имя искомого файла. Во второй строке вводится общее количество файлов и директорий. В остальных строках вводится информация о файлах и директориях в указанном выше формате (директория или файл, находящиеся внутри другой директории, отделяются одним дополнительным пробелом в начале строки). Количество строк в файле и количество символов в каждой строке не превосходит 100.
+        Формат вывода
+
+        Выведите путь к файлу в формате /директория/директория/…/файл
+
+        Гарантируется, что такой файл есть.
+
+        Гарантируется, что длина строки ответа не превосходит 255.
+        Пример
+        Ввод
+        Вывод
+
+        1.avi
+        12
+        emoh
+         vonavi
+          a.doc
+          b.doc 
+         vortep
+          .bashrc
+         vorodis
+          onrop
+           1.avi
+           2.avi 
+        rav
+         bil
+
+            
+
+        /emoh/vorodis/onrop/1.avi
+
+*/
+
+<script>
+    function genTree(data) {
+        const tree = []
+        const resArr = []
+        //build tree
+        for (let i = 0; i < data.length; i++) {
+            const level = data[i].split(' ')
+            const type = level[level.length - 1].split('.')
+            const parent = level.length - 1 == 0 ? null : tree.reverse().find(x => x.level == level.length - 2 && x.type == "folder")
+            const leaf = { parent, name: level[level.length - 1], level: level.length - 1, type: type.length == 1 ? 'folder' : 'file' }
+            tree.push(leaf)
+        }
+        //tree traverse
+        for (let i = 0; i < tree.length; i++) {
+            const path = genPath(tree[i])
+            const pathArr = path.split('/')
+            const revPath = pathArr.reverse()
+            const resPath = revPath.join("/").slice(0, -1)
+            resArr.push("/" + resPath)
+        }
+        return resArr.filter(x => x.includes('.'))
+    }
+    function genPath(path) {
+        function iter(p = path, result = '') {
+            if (!p.parent) return result = result.concat('/', p.name)
+            return iter(p.parent, result.concat('/', p.name))
+        }
+        const res = iter(path)
+        return res
+    }
+    const testData = ['1.avi', '12', 'emoh', ' vonavi', '  a.doc', '  b.doc', ' vortep', '  .bashrc', ' vorodis', '  onrop', '   1.avi', '   2.avi', 'rav', ' bil']
+    console.log(genTree(testData))
+</script>
