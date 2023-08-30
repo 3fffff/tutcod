@@ -1,0 +1,12 @@
+<script>
+const autoIncrementer = (function () {
+    let value = 0;
+    return {
+        inc() { value++ },
+        get value() { return value }
+    }
+})()
+autoIncrementer.inc()
+autoIncrementer.inc()
+console.log(autoIncrementer.value)
+</script>
