@@ -1,0 +1,59 @@
+<script>
+/*
+Каждый раз, когда кто-то заходит на сайт, мы делаем запись в журнал, отмечая Timestamp, PageId и CustomerId. 
+К концу дня у нас формируется большой файл со множеством подобных записей, и для каждого нового дня заводится новый такой файл.
+*/
+    var arr1 = [{ Timestamp: 1, PageID: 1, CustomerID: 1 }, { Timestamp: 2, PageID: 2, CustomerID: 1 }, { Timestamp: 2, PageID: 2, CustomerID: 2 }]
+    var arr2 = [{ Timestamp: 1, PageID: 1, CustomerID: 2 }, { Timestamp: 2, PageID: 2, CustomerID: 1 },
+    { Timestamp: 2, PageID: 2, CustomerID: 2 }, { Timestamp: 2, PageID: 2, CustomerID: 3 }]
+
+    const mapObj1 = countPageIDbyUser(arr1)
+    console.log(mapObj1)
+
+    const mapObj2 = countPageIDbyUser(arr2)
+    console.log(mapObj2)
+
+    console.log(setOfDayPages(mapObj1, mapObj2))
+
+    function countPageIDbyUser(arr) {
+        let map = new Map()
+        let res = {}
+        for (const obj of arr) {
+            if (!map[obj.CustomerID]) {
+                map[obj.CustomerID] = [{ PageID: obj.PageID, count: 1 }]
+                res[obj.CustomerID] = 1
+            }
+            else {
+                let mapObj = map[obj.CustomerID]
+                let check = mapObj.filter(x => x.PageID == obj.PageID)
+                /* if (check.length > 0) {
+                     for (let c of check)
+                         c.count += 1
+                 }
+                 else {*/
+                if (check.length == 0) {
+                    mapObj.push({ PageID: obj.PageID, count: 1 })
+                    res[obj.CustomerID] += 1
+                }
+            }
+        }
+        return res
+    }
+    function setOfDayPages(a1, a2) {
+        let res = new Set()
+        const keysOfa2 = Object.keys(a2)
+        for (const a of Object.keys(a1)) {
+            const check = keysOfa2.includes(a)
+            if (check) {
+                res.add(a)
+                delete a1[a]
+                delete a2[check]
+            }
+        }
+        res = new Set([...res, ...Object.keys(a1), ...Object.keys(a2)])
+        return res
+    }
+
+
+
+</script>
