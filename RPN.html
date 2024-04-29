@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+
+</head>
+
+<body>
+    <script>
+        const operation = ["+", "-", "/", "*", "^", "(", ")"]
+        const expression = ["4", "*", "(", "3", "/", "2", "-", "5", ")", "+", "4"]
+        const stackOperations = []
+        const answer = []
+        const PolNot = []
+        const priority = {
+            "sin": 3,
+            "cos": 3,
+            "ctg": 3,
+            "tg": 3,
+            "_": 2,
+            "^": 2,
+            "*": 1,
+            "/": 1,
+            "%": 1,
+            "+": 0,
+            "-": 0,
+            "(": -2,
+            ")": -1,
+        }
+        for (let token of expression) {
+            if (operation.includes(token)) {
+                if (token == ")") {
+                    while (stackOperations.length != 0 && stackOperations[stackOperations.length - 1] != "(")
+                        PolNot.push(stackOperations.pop())
+                    stackOperations.pop()
+                    continue
+                }
+                while (stackOperations.length != 0 && token !="(" && priority[stackOperations[stackOperations.length - 1]] > priority[token] )
+                    PolNot.push(stackOperations.pop())
+                stackOperations.push(token)
+            }
+            else PolNot.push(token)
+        }
+        PolNot.push(...stackOperations)
+        for (let token of PolNot) {
+            if (operation.includes(token)) {
+                const v2 = answer.pop()
+                const v1 = answer.pop()
+                if (token == "+")
+                    answer.push(v1 + v2)
+                else if (token == "-")
+                    answer.push(v1 - v2)
+                else if (token == "/")
+                    answer.push(v1 / v2)
+                else if (token == "*")
+                    answer.push(v1 * v2)
+                else
+                    answer.push(v1 ** v2)
+            }
+            else {
+                answer.push(Number(token))
+            }
+        }
+        console.log(answer)
+    </script>
+
+</body>
+
+</html>
